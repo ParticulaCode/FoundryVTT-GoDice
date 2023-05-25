@@ -1,0 +1,47 @@
+{
+  "id": "godice",
+  "title": "GoDice Bluetooth Dice",
+  "description": "RPG smart connected dice combine the haptic satisfaction of rolling real dice with rapid auto-calculation of your outcomes to keep the action going.",
+  "version": "#{VERSION}#",
+  "library": "false",
+  "manifestPlusVersion": "1.2.0",
+  "compatibility": {
+    "minimum": 10,
+    "verified": 11,
+    "maximum": 11
+  },
+  "authors": [
+    {
+      "name": "Cody Swendrowski",
+      "discord": "cswendrowski#9701"
+    }
+  ],
+  "relationships": {
+    "systems": [],
+    "requires": [{
+      "id": "unfulfilled-rolls",
+      "type": "module"
+    }]
+  },
+  "esmodules": [
+    "scripts/godice.mjs"
+  ],
+  "scripts": [
+  ],
+  "styles": [
+    "styles/godice.css"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "languages/en.json"
+    }
+  ],
+  "url": "#{URL}#",
+  "manifest": "#{MANIFEST}#",
+  "download": "#{DOWNLOAD}#",
+  "license": "LICENSE",
+  "readme": "README.md",
+  "media": []
+}

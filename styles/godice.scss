@@ -1,0 +1,30 @@
+#godice-resolver {
+  .terms {
+    /** Display a grid of dice terms */
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-gap: 1rem;
+
+    /** The Icon should be large and centered */
+    i {
+      font-size: 3rem;
+      text-align: center;
+    }
+
+    .dice-term-faces {
+      text-align: center;
+    }
+
+    /** Put a light rounded border around each term */
+    .dice-term {
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 0.5rem;
+      margin: 0.5rem;
+
+      &.fulfilled {
+        border-color: #075207;
+      }
+    }
+  }
+}
