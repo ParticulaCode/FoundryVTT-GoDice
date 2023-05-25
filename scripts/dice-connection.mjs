@@ -4,6 +4,7 @@ export default class DiceConnection {
     connectedDice = new Map();
     _reconnectInterval = null;
     _rollHandlers = new Map();
+    isConnected = false;
 
     constructor() {
         this.connect();
@@ -44,6 +45,7 @@ export default class DiceConnection {
         console.log("GoDice websocket connection opened");
         clearInterval(this._reconnectInterval);
         this._reconnectInterval = null;
+        this.isConnected = true;
     }
 
     /* -------------------------------------------- */
@@ -90,6 +92,7 @@ export default class DiceConnection {
     _onClose(event) {
         console.log("GoDice websocket connection closed");
         this._webSocket = null;
+        this.isConnected = false;
         this._attemptReconnect();
     }
 

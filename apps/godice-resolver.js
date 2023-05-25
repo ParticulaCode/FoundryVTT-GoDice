@@ -75,14 +75,20 @@ export default class GodiceResolver extends FormApplication {
     /** @override */
     activateListeners(html) {
         super.activateListeners(html);
-        this.handlerId = game.modules.get("godice").api.connection.registerRollHandler(this.handleRoll.bind(this));
+        const api = game.modules.get("godice").api;
+        this.handlerId = api.connection.registerRollHandler(this.handleRoll.bind(this));
+
+        if ( !api.connection.isConnected ) {
+            ui.notifications.error("GoDice is not connected, make sure you have the App open.");
+            return;
+        }
 
         const toBlink = new Set();
         const connected = Array.from(game.modules.get("godice").api.connection.connectedDice.values());
         for ( const term of this.terms ) {
-            console.log(term);
             // Find the first connected die not already in set that has a matching shell
-            const shell = `D${term.faces}`;
+            let shell = `D${term.faces}`;
+            if ( shell == "D100" ) shell = "D10X";
             const die = connected.find(die => !toBlink.has(die.id) && die.shell === shell);
             if ( die ) {
                 toBlink.add(die.id);
@@ -98,7 +104,8 @@ export default class GodiceResolver extends FormApplication {
     handleRoll(data) {
         const inputs = Array.from(this.element.find("input"));
         function matchingInput(event, rolling) {
-            const dieSize = event.die.shell.toLowerCase(); // "D20", "D8", etc
+            let dieSize = event.die.shell.toLowerCase(); // "D20", "D8", etc
+            if ( dieSize == "d10x" ) dieSize = "d100";
 
             // Find the first input field matching this die size that does not have a value
             return inputs.find(input => input.name.toLowerCase().startsWith(dieSize)
