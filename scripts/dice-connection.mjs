@@ -118,17 +118,13 @@ export default class DiceConnection {
 
     /* -------------------------------------------- */
 
-    blink(id) {
-        this.blink(id, [1, 0.180, 0.100]);
-    }
-
-    /* -------------------------------------------- */
-
     blink(id, color) {
         if ( !this._webSocket ) {
             console.error("GoDice websocket not connected");
             return;
         }
+
+        if ( !color ) color = [1, 0.180, 0.100];
 
         // Send a message to the GoDice socket to flash the die
         const payload = JSON.stringify({

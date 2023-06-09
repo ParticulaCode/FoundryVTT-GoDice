@@ -22,5 +22,9 @@
 #godice-resolver .terms .dice-term.fulfilled {
   border-color: #075207;
 }
+#godice-resolver .dialog-button {
+  background-color: #1675b0;
+  color: white;
+}
 
 /*# sourceMappingURL=godice.css.map */
