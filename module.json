@@ -2,7 +2,7 @@
   "id": "godice",
   "title": "GoDice Bluetooth Dice",
   "description": "RPG smart connected dice combine the haptic satisfaction of rolling real dice with rapid auto-calculation of your outcomes to keep the action going.",
-  "version": "1.0",
+  "version": "#{VERSION}#",
   "library": "false",
   "manifestPlusVersion": "1.2.0",
   "compatibility": {
@@ -12,13 +12,10 @@
   },
   "authors": [
     {
-      "name": "Cody Swendrowski",
-      "discord": "cswendrowski#9701"
-    },
-    {
       "name": "Particula Ltd.",
       "email": "support@particula-tech.com",
-      "url": "particula-tech.com"
+      "url": "particula-tech.com",
+      "discord": "Katz Amit#5329"
     }
   ],
   "relationships": {
