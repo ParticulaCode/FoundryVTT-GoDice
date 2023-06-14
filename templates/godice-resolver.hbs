@@ -1,30 +1,40 @@
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400&family=Rubik:wght@400;700&display=swap" rel="stylesheet">
+</head>
 <form autocomplete="off">
     <div class="dice-roll">
-        {{#if roll.options.flavor}}
-            <h2>{{roll.options.flavor}}</h2>
-        {{/if}}
-        <div class="dice-result">
-            <div class="dice-formula">{{roll._formula}}</div>
+            <div class="godice-flavor">
+                {{#if roll.options.flavor}}
+                    <h2 class="godice-flavor-header">{{roll.options.flavor}}</h2>
+                {{else}}
+                    <h2 class="godice-flavor-header">Custom Roll</h2>
+                {{/if}}
+            </div>
+            <div class="godice-formula">{{roll._formula}}</div>
+            <img class="godice-logo" src="modules/godice/artwork/GoDiceLogo.svg" width="90px" height="90px">
+    </div>
+
+    <div class="terms-container">
+        <div class="terms">
+            {{#each terms}}
+                <div class="dice-term flexcol">
+                    {{#if this.faces}}
+                        {{#if this.image}}
+                            <img src="{{this.image}}" alt="d{{this.faces}}" class="dice-term-image" width="240px" height="240px"/>
+                        {{else}}
+                            <i class="fa-solid {{this.icon}}"></i>
+                        {{/if}}
+                        <p class="dice-term-faces"><b>d{{this.faces}}</b></p>
+                    {{/if}}
+                    <input type="text" class="dice-term-input" name="{{this.id}}" min="1" max="{{this.faces}}"
+                        placeholder="{{this.randomValue}}" data-icon="{{this.icon}}" data-rolling="false" />
+                </div>
+            {{/each}}
         </div>
     </div>
 
-    <div class="terms">
-        {{#each terms}}
-            <div class="dice-term flexcol">
-                {{#if this.faces}}
-                    <i class="fa-solid {{this.icon}}"></i>
-                    <p class="dice-term-faces">d{{this.faces}}</p>
-                {{/if}}
-                <input type="text" class="dice-term-input" name="{{this.id}}" min="1" max="{{this.faces}}"
-                       placeholder="{{this.randomValue}}" data-icon="{{this.icon}}" data-rolling="false" />
-            </div>
-        {{/each}}
-    </div>
-
-    <div class="dialog-buttons flexrow">
-        <button class="dialog-button ok default" data-button="ok">
-            <i class="fas fa-check"></i>
-            Submit
-        </button>
-    </div>
+    <button class="dialog-button ok default" data-button="ok">
+        <i class="fas fa-check"></i>
+        Submit
+    </button>
 </form>

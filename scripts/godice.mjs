@@ -21,7 +21,7 @@ Hooks.once('unfulfilled-rolls-bluetooth', function(providers) {
     return foundry.utils.mergeObject(providers, {
         "godice": {
             label: "GoDice",
-            icon: "modules/godice/assets/godice.png",
+            icon: "modules/godice/assets/GoDiceLogo.png",
             url: "https://particula-tech.com/godice/",
             app: GodiceResolver
         }

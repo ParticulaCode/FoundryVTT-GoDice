@@ -19,7 +19,7 @@ export default class DiceConnection {
         this.connectedDice.clear();
         const url = game.settings.get("godice", "websocketurl");
         if (url) {
-            this._webSocket = new WebSocket(url);
+            this._webSocket = new WebSocket(url + "/FoundryGDVTT");
             this._webSocket.onopen = this._onOpen.bind(this);
             this._webSocket.onmessage = this._onMessage.bind(this);
             this._webSocket.onclose = this._onClose.bind(this);
