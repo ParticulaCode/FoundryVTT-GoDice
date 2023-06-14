@@ -121,8 +121,9 @@ jobs:
             LICENSE                              \
             scripts/                             \
             styles/                              \
-            packs/                               \
             templates/                           \
+            apps/                                \
+            artwork/                             \
           # Don't forget to add a backslash at the end of the line for any
           # additional files or directories!
 
