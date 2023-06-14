@@ -15,7 +15,7 @@ export default class GodiceResolver extends FormApplication {
         return foundry.utils.mergeObject(super.defaultOptions, {
             id: "godice-resolver",
             template: "modules/godice/templates/godice-resolver.hbs",
-            title: "GoDice Resolver",
+            title: "GoDice Companion",
             popOut: true,
             width: 720,
             submitOnChange: false,
@@ -33,8 +33,22 @@ export default class GodiceResolver extends FormApplication {
     /** @override */
     async getData(options={}) {
         const context = await super.getData(options);
+        
+        const facesToImages = {
+            4: "modules/godice/artwork/d4_white.png",
+            6: "modules/godice/artwork/d6_white.png",
+            8: "modules/godice/artwork/d8_white.png",
+            10: "modules/godice/artwork/d10_white.png",
+            12: "modules/godice/artwork/d12_white.png",
+            20: "modules/godice/artwork/d20_white.png",
+            100: "modules/godice/artwork/d10_white.png",
 
+        }
+        
         context.terms = this.terms;
+        for (const term of context.terms) {
+            term.image = facesToImages[term.faces]
+        }
         context.roll = this.roll;
 
         return context;
@@ -118,16 +132,16 @@ export default class GodiceResolver extends FormApplication {
 
                 // Find the span sibling before the input field and add a " - Rolling..." message
                 const span = input.previousElementSibling;
-                span.innerText += " - Rolling...";
+                /*span.innerText += " - Rolling...";*/
 
                 // Find the font awesome icon and apply the animation
                 const icon = span.previousElementSibling;
-                icon.classList.add("fa-spin-pulse");
+                icon.classList.add("fa-spin");
 
                 // Create a chat message to indicate that the die is rolling
                 const message = {
                     speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-                    content: `<i class="fas ${input.dataset.icon} fa-spin-pulse"></i> Rolling ${data.die.shell}...`,
+                    content: `<i class="fas ${input.dataset.icon} fa-spin"></i> Rolling ${data.die.shell}...`,
                     type: CONST.CHAT_MESSAGE_TYPES.ROLL,
                 }
                 ChatMessage.create(message).then(createdChatMessage => {
@@ -141,21 +155,32 @@ export default class GodiceResolver extends FormApplication {
                 input.dataset.rolling = false;
                 input.value = data.die.value;
 
+                // Temporary D10 Fix
+                if (input.value == 0) {
+                    input.value = 10;   
+                }
+
+
                 // Find the span sibling before the input field and remove the " - Rolling..." message
                 const span = input.previousElementSibling;
-                span.innerText = span.innerText.replace(" - Rolling...", " (Fulfilled)");
+                /*span.innerText = span.innerText.replace(" - Rolling...", " (Fulfilled)");*/
 
                 // Find the font awesome icon and remove the animation
                 const icon = span.previousElementSibling;
-                icon.classList.remove("fa-spin-pulse");
+                icon.classList.remove("fa-spin");
+                icon.classList.add("fulfilled")
 
                 // Add a fulfilled class to the parent .dice-term
                 const term = span.closest(".dice-term");
                 term.classList.add("fulfilled");
+                const faces = span.closest(".dice-term");
+                faces.classList.add("fulfilled");
+
 
                 // Delete the chat message that indicated that the die was rolling
                 const createdChatMessage = GodiceResolver.createdChatMessages.pop();
                 if ( createdChatMessage ) {
+                    console.warn("Deleting message");
                     createdChatMessage.delete();
                 }
             }
