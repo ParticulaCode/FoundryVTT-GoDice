@@ -40,13 +40,17 @@ And you’re good to go!
 ## How to use the GoDice Companion roll fulfillment window
 
 * First, configure the dice to work with the GoDice smart connected RPG dice, by opening the "Dice Configuration" on the "Game Settings"
+* 
 ![openDiceConf](https://github.com/ParticulaCode/FoundryVTT-GoDice/assets/58478137/f7a503a4-e13c-4d09-8d09-15e7f9023f32)
 
 Then choose the Bluetooth Provider to be GoDice, and for each die type, its possible to choose whether the die output will be from the Bluetooth dice, Manual input or Foundry Digital roll
+
 ![window](https://github.com/ParticulaCode/FoundryVTT-GoDice/assets/58478137/0a5e567e-c62b-4379-90f2-094b80fc2294)
 
-* Once you need to roll some dice, the GoDice Companion roll fulfillment window will open, and the dice that should be rolled will start to blink.
+* Once you need to roll some dice, the GoDice Companion window will open, and the dice that should be rolled will start to blink.
 Just roll them out, and the score will be set according to your dice outcome.
+
+![gdcomp](https://github.com/ParticulaCode/FoundryVTT-GoDice/assets/58478137/a8c2613c-c38f-4a15-9075-1a989f006ce5)
 
 * If you click on Submit without rolling your dice, Foundry will randomly pick the dice outcome for you
 
