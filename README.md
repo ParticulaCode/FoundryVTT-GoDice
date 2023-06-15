@@ -53,5 +53,3 @@ Just roll them out, and the score will be set according to your dice outcome.
 ![gdcomp](https://github.com/ParticulaCode/FoundryVTT-GoDice/assets/58478137/a8c2613c-c38f-4a15-9075-1a989f006ce5)
 
 * If you click on Submit without rolling your dice, Foundry will randomly pick the dice outcome for you
-
-* How to cancel and reroll one of my dice?
