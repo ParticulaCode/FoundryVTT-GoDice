@@ -102,11 +102,23 @@ export default class GodiceResolver extends FormApplication {
         for ( const term of this.terms ) {
             // Find the first connected die not already in set that has a matching shell
             let shell = `D${term.faces}`;
-            if ( shell == "D100" ) shell = "D10X";
-            const die = connected.find(die => !toBlink.has(die.id) && die.shell === shell);
-            if ( die ) {
-                toBlink.add(die.id);
+            if ( shell == "D100" ) {
+                const d10 = connected.find(die => !toBlink.has(die.id) && die.shell === "D10");
+                const d10x = connected.find(die => !toBlink.has(die.id) && die.shell === "D10X");
+                if ( d10 ) {
+                    toBlink.add(d10.id);
+                }
+                if ( d10x ) {
+                    toBlink.add(d10x.id);
+                }
+
+            } else {
+                const die = connected.find(die => !toBlink.has(die.id) && die.shell === shell);
+                if ( die ) {
+                    toBlink.add(die.id);
+                }
             }
+
         }
         for ( const id of toBlink ) {
             game.modules.get("godice").api.connection.blink(id);
@@ -119,16 +131,35 @@ export default class GodiceResolver extends FormApplication {
         const inputs = Array.from(this.element.find("input"));
         function matchingInput(event, rolling) {
             let dieSize = event.die.shell.toLowerCase(); // "D20", "D8", etc
-            if ( dieSize == "d10x" ) dieSize = "d100";
+            
+            // Checking d100s
+            if (inputs.find(input => input.name.toLowerCase().startsWith("d100"))
+             && (dieSize === "d10" || dieSize === "d10x")) {
+                // Getting all d100s
+                const d100s = inputs.filter(input => input.name.toLowerCase().startsWith("d100"));
+                
+                // Checking if there is an unresolved, non rolling d100 term
+                let validTerm = d100s.find(input => input.dataset[dieSize + "rolling"] === String(rolling)
+                && input.dataset[dieSize + "resolved"] === "false");
+                if (validTerm) {
+                    return validTerm;
+                }
+            }
 
-            // Find the first input field matching this die size that does not have a value
+            // Else find the first input field matching this die size that does not have a value
             return inputs.find(input => input.name.toLowerCase().startsWith(dieSize)
-                && !input.value && input.dataset.rolling === String(rolling));
+            && !input.value && input.dataset.rolling === String(rolling));
         }
+        
         if ( data.event === "die_roll_started" ) {
             const input = matchingInput(data, false);
             if ( input ) {
-                input.dataset.rolling = true;
+                if (input.name.startsWith("d100")) {
+                    input.dataset[data.die.shell.toLowerCase() + "rolling"] = true;
+                }
+                else {
+                    input.dataset.rolling = true;
+                }
 
                 // Find the span sibling before the input field and add a " - Rolling..." message
                 const span = input.previousElementSibling;
@@ -136,7 +167,9 @@ export default class GodiceResolver extends FormApplication {
 
                 // Find the font awesome icon and apply the animation
                 const icon = span.previousElementSibling;
-                icon.classList.add("fa-spin");
+                if (!icon.classList.contains("fa-spin")) {
+                    icon.classList.add("fa-spin");
+                }
 
                 // Create a chat message to indicate that the die is rolling
                 const message = {
@@ -152,41 +185,75 @@ export default class GodiceResolver extends FormApplication {
         else if ( data.event === "die_roll_ended" ) {
             const input = matchingInput(data, true);
             if ( input ) {
-                input.dataset.rolling = false;
-                input.value = data.die.value;
 
-                // Temporary D10 Fix
-                if (input.value == 0) {
-                    input.value = 10;   
+                // Find the span sibling before the input field
+                const span = input.previousElementSibling;
+                // Find the font awesome icon
+                const icon = span.previousElementSibling;
+
+                let fullyResolved = true; // Was the roll fully resolved, used for d100s
+                if (input.name.startsWith("d100")) {
+                    input.dataset[data.die.shell.toLowerCase() + "rolling"] = false;
+                    input.dataset[data.die.shell.toLowerCase() + "resolved"] = true;
+                    
+                    // First resolved roll (logical xor!)
+                    if (input.dataset["d10resolved"] != input.dataset["d10xresolved"]) {
+                        input.value = data.die.value;
+                        fullyResolved = false;
+
+                        // Removing spin animation if the other die isn't still rolling (we know at least one is false)
+                        if (input.dataset["d10rolling"] == input.dataset["d10xrolling"]) {
+                            icon.classList.remove("fa-spin");
+                        }
+                    } else {
+                        // Fully resolved
+
+                        // Removing spin animation
+                        input.value = String(parseInt(input.value) + parseInt(data.die.value));
+                        if (input.value == 0) {
+                            // If both dice rolled 0 the result should be 100
+                            input.value = 100;
+                        }
+                        icon.classList.remove("fa-spin");
+                    }
+                }
+                else {
+                    input.dataset.rolling = false;
+                    input.value = data.die.value;
+                
+                    // Temporary D10 Fix
+                    if (input.value == 0) {
+                        input.value = 10;   
+                    }
+                    // Removing spin animation
+                    icon.classList.remove("fa-spin");
+                }
+                
+
+
+                if (fullyResolved) {
+                    icon.classList.add("fulfilled")
+
+                    // Add a fulfilled class to the parent .dice-term
+                    const term = span.closest(".dice-term");
+                    term.classList.add("fulfilled");
+                    const faces = span.closest(".dice-term");
+                    faces.classList.add("fulfilled");
                 }
 
-
-                // Find the span sibling before the input field and remove the " - Rolling..." message
-                const span = input.previousElementSibling;
-                /*span.innerText = span.innerText.replace(" - Rolling...", " (Fulfilled)");*/
-
-                // Find the font awesome icon and remove the animation
-                const icon = span.previousElementSibling;
-                icon.classList.remove("fa-spin");
-                icon.classList.add("fulfilled")
-
-                // Add a fulfilled class to the parent .dice-term
-                const term = span.closest(".dice-term");
-                term.classList.add("fulfilled");
-                const faces = span.closest(".dice-term");
-                faces.classList.add("fulfilled");
 
 
                 // Delete the chat message that indicated that the die was rolling
                 const createdChatMessage = GodiceResolver.createdChatMessages.pop();
                 if ( createdChatMessage ) {
-                    console.warn("Deleting message");
                     createdChatMessage.delete();
                 }
             }
 
             // If all input fields have values, submit the form
-            if ( inputs.every(input => input.value) ) {
+            if ( inputs.every(input => input.value)
+             && inputs.filter(input => input.name.toLowerCase().startsWith("d100")).every(
+                input => input.dataset["d10resolved"] == String(true) && input.dataset["d10xresolved"] == String(true)) ) {
                 this.submit();
             }
         }
