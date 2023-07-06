@@ -26,7 +26,7 @@
                         {{/if}}
                         <p class="dice-term-faces"><b>d{{this.faces}}</b></p>
                     {{/if}}
-                    <input type="text" class="dice-term-input" name="{{this.id}}" min="1" max="{{this.faces}}"
+                    <input type="number" class="dice-term-input" name="{{this.id}}" min="1" max="{{this.faces}}"
                         placeholder="{{this.randomValue}}" data-icon="{{this.icon}}" data-rolling="false"
                         data-d10rolling="false" data-d10resolved="false" data-d10xrolling="false" data-d10xresolved="false" />
                 </div>

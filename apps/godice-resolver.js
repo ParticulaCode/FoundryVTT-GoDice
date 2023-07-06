@@ -89,6 +89,36 @@ export default class GodiceResolver extends FormApplication {
     /** @override */
     activateListeners(html) {
         super.activateListeners(html);
+
+        // Adding event handler to each input
+        let diceInputs = $(".dice-term-input")
+        diceInputs.each((index) => {
+            let input = diceInputs[index];
+            console.warn(input);
+
+            $(input).on('blur', () => {
+                let value = input.valueAsNumber;
+                // Getting the inputs's according icon
+                const span = input.previousElementSibling;
+                const icon = span.previousElementSibling;
+                const term = span.closest(".dice-term");
+                const faces = span.closest(".dice-term");
+                if (value) {
+                    // Value is fulfilled
+                    icon.classList.add("fulfilled");
+                    term.classList.add("fulfilled");
+                    faces.classList.add("fulfilled");
+                } else {
+                    // Value is unfulfilled
+                    icon.classList.remove("fulfilled");
+                    term.classList.remove("fulfilled");
+                    faces.classList.remove("fulfilled");
+                }
+            });
+        });
+
+
+        // Setting input behavior
         const api = game.modules.get("godice").api;
         this.handlerId = api.connection.registerRollHandler(this.handleRoll.bind(this));
 
