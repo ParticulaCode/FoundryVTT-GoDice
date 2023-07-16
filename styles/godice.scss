@@ -183,18 +183,19 @@
     margin-left: 15px;
     margin-top: 6px;
     margin-bottom: 15px;
-    line-height: 33px;
+    line-height: 42px;
     font-size: 12pt;
+    box-shadow: 0px 4px #26668F;
+    border: none;
     font-family: 'Rubik', sans-serif !important; 
     background-color: #1973AA;
     border-radius: 6px;
-    border: 2px solid #135680;
     width: 320px;
     height: 42px;
   }
 
   .godice-button:hover {
-    box-shadow: 0px 0px 3px #348cc2;
+    box-shadow: 0px 4px #26668F;
     text-shadow: 0 0 8px #348cc2;
   }
 
