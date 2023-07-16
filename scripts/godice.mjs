@@ -1,4 +1,5 @@
 import GodiceResolver from "../apps/godice-resolver.js";
+import unsecuredGuide from "../apps/help-guide.js";
 import DiceConnection from "./dice-connection.mjs";
 
 Hooks.once('init', () => {
@@ -6,6 +7,8 @@ Hooks.once('init', () => {
         default: "",
         config: true,
         title: "GoDice Websocket URL",
+        name: "GoDice Websocket address",
+        label: "GoDice Websocket address",
         hint: "The URL of the GoDice websocket server, found in the GoDice app.",
         placeholder: "ws://192.168.68.XYZ:8596/FoundryVTT",
         type: String,
@@ -14,6 +17,13 @@ Hooks.once('init', () => {
             game.modules.get("godice").api.connection.connect();
         }
     });
+    game.settings.registerMenu("godice", "help-guide", {
+        name: "Need help?",
+        label: "Click here",
+        type: unsecuredGuide,
+        restricted: false
+    });
+
 });
 
 Hooks.once('unfulfilled-rolls-bluetooth', function(providers) {
