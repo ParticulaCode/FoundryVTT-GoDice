@@ -9,7 +9,7 @@ Hooks.once('init', () => {
         title: "GoDice Websocket URL",
         name: "GoDice Websocket address",
         label: "GoDice Websocket address",
-        hint: "The URL of the GoDice WebSocket server, found in the GoDice app. If SSL mode is enabled on the app insert this address:wss://godice-connector.com:8596",
+        hint: "The URL of the GoDice WebSocket server, found in the GoDice app. If SSL mode is enabled on the app insert this address: wss://godice-connector.com:8596",
         placeholder: "ws://192.168.68.XYZ:8596/FoundryVTT",
         type: String,
         scope: "client",
