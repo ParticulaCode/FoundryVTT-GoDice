@@ -1,4 +1,5 @@
 import GodiceResolver from "../apps/godice-resolver.js";
+import unsecuredGuide from "../apps/help-guide.js";
 import DiceConnection from "./dice-connection.mjs";
 
 Hooks.once('init', () => {
@@ -6,7 +7,9 @@ Hooks.once('init', () => {
         default: "",
         config: true,
         title: "GoDice Websocket URL",
-        hint: "The URL of the GoDice websocket server, found in the GoDice app.",
+        name: "GoDice Websocket address",
+        label: "GoDice Websocket address",
+        hint: "The URL of the GoDice WebSocket server, found in the GoDice app. If SSL mode is enabled on the app insert this address: wss://godice-connector.com:8596",
         placeholder: "ws://192.168.68.XYZ:8596/FoundryVTT",
         type: String,
         scope: "client",
@@ -14,6 +17,13 @@ Hooks.once('init', () => {
             game.modules.get("godice").api.connection.connect();
         }
     });
+    game.settings.registerMenu("godice", "help-guide", {
+        name: "Want to enable SSL? Need help?",
+        label: "GoDice Support & SSL Hosting",
+        type: unsecuredGuide,
+        restricted: false
+    });
+
 });
 
 Hooks.once('unfulfilled-rolls-bluetooth', function(providers) {
