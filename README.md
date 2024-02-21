@@ -7,7 +7,6 @@
 ## Module requirements
 
 * This module was built and works genuinely with GoDice - [the first connected RPG dice](https://particula-tech.com/godice/https://particula-tech.com/shop/godice-rpg-bundle/).
-* Requires installation of [Unfulfilled Rolls module](https://foundryvtt.com/packages/unfulfilled-rolls), by FoundryVTT.
 * Requires a mobile installation of GoDice™ (Download on [Google Play](https://play.google.com/store/apps/details?id=com.particula.godice) OR on the [AppStore](https://apps.apple.com/us/app/id1609938803))
 * For enhanced experience  - we strongly recommend using a 3D dice module (optional) - module name - Dice So Nice
 
@@ -43,7 +42,7 @@ And you’re good to go!
 * 
 ![openDiceConf](https://github.com/ParticulaCode/FoundryVTT-GoDice/assets/58478137/f7a503a4-e13c-4d09-8d09-15e7f9023f32)
 
-Then choose the Bluetooth Provider to be GoDice, and for each die type, its possible to choose whether the die output will be from the Bluetooth dice, Manual input or Foundry Digital roll
+Then choose which of your dice you want to roll with GoDice.
 
 ![window](https://github.com/ParticulaCode/FoundryVTT-GoDice/assets/58478137/0a5e567e-c62b-4379-90f2-094b80fc2294)
 
