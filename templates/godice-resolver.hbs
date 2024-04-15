@@ -1,7 +1,4 @@
-<head>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400&family=Rubik:wght@400;700&display=swap" rel="stylesheet">
-</head>
-<form autocomplete="off">
+<section>
     <div class="dice-roll">
             <div class="godice-flavor">
                 {{#if roll.options.flavor}}
@@ -27,15 +24,15 @@
                         <p class="dice-term-faces"><b>d{{this.faces}}</b></p>
                     {{/if}}
                     <input type="number" class="dice-term-input" name="{{this.id}}" min="1" max="{{this.faces}}"
-                        placeholder="{{this.randomValue}}" data-icon="{{this.icon}}" data-rolling="false"
+                        value="{{ value }}" data-icon="{{this.icon}}" data-rolling="false" data-denomination="{{ denomination }}"
                         data-d10rolling="false" data-d10resolved="false" data-d10xrolling="false" data-d10xresolved="false" />
                 </div>
             {{/each}}
         </div>
     </div>
 
-    <button class="dialog-button ok default" data-button="ok">
+    <button type="submit" class="dialog-button ok default" data-button="ok">
         <i class="fas fa-check"></i>
         Submit
     </button>
-</form>
+</section>

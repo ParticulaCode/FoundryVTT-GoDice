@@ -1,3 +1,4 @@
+import GodiceResolver from "../apps/godice-resolver.js";
 import unsecuredGuide from "../apps/help-guide.js";
 import DiceConnection from "./dice-connection.mjs";
 
@@ -24,7 +25,11 @@ Hooks.once('init', () => {
     });
 
     // Core Dice Configuration
-    CONFIG.Dice.fulfillment.methods.godice = { label: "GoDice Bluetooth Dice", interactive: true };
+    CONFIG.Dice.fulfillment.methods.godice = {
+        label: "GoDice Bluetooth Dice",
+        interactive: true,
+        resolver: GodiceResolver
+    };
 });
 
 Hooks.once("ready", () => {
@@ -40,6 +45,10 @@ Hooks.once("ready", () => {
  * @param {object} die         The die data.
  */
 function handleRoll({ event, die }) {
+    // If there is already a GoDice resolver active, allow it to handle the roll.
+    if ( Array.from(Roll.defaultImplementation.RESOLVERS.values()).find(r => r instanceof GodiceResolver) ) return;
+
+    // Otherwise register the result with the default RollResolver.
     if ( event === "die_roll_ended" ) {
         Roll.defaultImplementation.registerResult("godice", die.shell.toLowerCase(), die.value);
     }

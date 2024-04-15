@@ -1,6 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400&family=Rubik:wght@300..900&display=swap');
+
 #godice-resolver {
   color: white;
-  font-family: 'Rubik', sans-serif !important; 
+  font-family: 'Rubik', sans-serif !important;
 
   .window-header {
     background: #006AABB0;
@@ -48,6 +50,11 @@
       height: 50%;
 
       .godice-flavor-header {
+        color: black;
+        font-family: Rubik, sans-serif;
+        text-shadow: none;
+        line-height: unset;
+        margin: unset;
         position: absolute;
         font-size: var(--font-size-20);
         bottom: 0;
@@ -57,7 +64,7 @@
 
     .godice-formula {
       padding-left: 0.5rem;
-      margin-left: 0.5rem;  
+      margin-left: 0.5rem;
       color: #696969;
       font-size: var(--font-size-20);
       flex-basis: 100%;
@@ -91,13 +98,13 @@
       flex-wrap: wrap;
       width: 100%;
       justify-content: center;
-  
+
       /** The Icon should be large and centered */
       i {
         font-size: 3rem;
         text-align: center;
       }
-  
+
 
       .dice-term {
         flex: 0 0 15%;
@@ -105,7 +112,9 @@
         padding: 0.5rem;
         margin: 0.5rem;
         position: relative;
-        
+
+        > * { flex: 1; }
+
         .dice-term-image {
           border: none;
           display: block;
@@ -136,8 +145,9 @@
           font-weight: 700;
           text-align: center;
           margin-top: 11px;
+          line-height: unset;
         }
-  
+
         .dice-term-input:focus {
           box-shadow: none;
         }
@@ -145,7 +155,7 @@
         .dice-term-input::placeholder {
           opacity: 0;
         }
-  
+
         &.fulfilled {
           border-color: #075207;
 
@@ -165,7 +175,7 @@
 
 #help-guide {
   color: white;
-  font-family: 'Rubik', sans-serif !important; 
+  font-family: 'Rubik', sans-serif !important;
   .window-header {
     background: #006AABB0;
     border-top-left-radius: 6px;
@@ -173,7 +183,7 @@
     border-bottom: none !important;
   }
 
-  
+
   .godice-button {
     color: white;
     cursor: pointer;
@@ -187,7 +197,7 @@
     font-size: 12pt;
     box-shadow: 0px 4px #26668F;
     border: none;
-    font-family: 'Rubik', sans-serif !important; 
+    font-family: 'Rubik', sans-serif !important;
     background-color: #1973AA;
     border-radius: 6px;
     width: 320px;
@@ -227,7 +237,7 @@
     }
     .godice-formula {
       padding-left: 0.5rem;
-      margin-left: 0.5rem;  
+      margin-left: 0.5rem;
       color: #696969;
       font-size: var(--font-size-20);
       flex-basis: 100%;
