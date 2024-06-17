@@ -24,22 +24,32 @@ Hooks.once('init', () => {
         restricted: false
     });
 
-});
-
-Hooks.once('unfulfilled-rolls-bluetooth', function(providers) {
-
-    return foundry.utils.mergeObject(providers, {
-        "godice": {
-            label: "GoDice",
-            icon: "modules/godice/assets/GoDiceLogo.png",
-            url: "https://particula-tech.com/godice/",
-            app: GodiceResolver
-        }
-    })
+    // Core Dice Configuration
+    CONFIG.Dice.fulfillment.methods.godice = {
+        label: "GoDice Bluetooth Dice",
+        interactive: true,
+        resolver: GodiceResolver
+    };
 });
 
 Hooks.once("ready", () => {
-    game.modules.get("godice").api = {
-        connection: new DiceConnection()
-    }
+    const connection = new DiceConnection();
+    game.modules.get("godice").api = { connection };
+    connection.registerRollHandler(handleRoll);
 });
+
+/**
+ * Handle a roll event.
+ * @param {object} data
+ * @param {string} data.event  The event type.
+ * @param {object} die         The die data.
+ */
+function handleRoll({ event, die }) {
+    // If there is already a GoDice resolver active, allow it to handle the roll.
+    if ( Array.from(Roll.defaultImplementation.RESOLVERS.values()).find(r => r instanceof GodiceResolver) ) return;
+
+    // Otherwise register the result with the default RollResolver.
+    if ( event === "die_roll_ended" ) {
+        Roll.defaultImplementation.registerResult("godice", die.shell.toLowerCase(), die.value);
+    }
+}

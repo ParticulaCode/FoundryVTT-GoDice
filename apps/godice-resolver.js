@@ -1,27 +1,24 @@
-export default class GodiceResolver extends FormApplication {
+export default class GodiceResolver extends foundry.applications.dice.RollResolver {
   handlerId;
 
-  constructor(terms, roll, callback) {
-    super({});
-    this.terms = terms;
-    this.roll = roll;
-    this.callback = callback;
+  /** @override */
+  static DEFAULT_OPTIONS = {
+    id: "godice-resolver",
+    template: "modules/godice/templates/godice-resolver.hbs",
+    window: { title: "GoDice Companion" },
+    position: { width: 720 },
+    form: {
+      handler: this._fulfillRoll
+    }
   }
 
-  /* -------------------------------------------- */
-
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      id: "godice-resolver",
-      template: "modules/godice/templates/godice-resolver.hbs",
-      title: "GoDice Companion",
-      popOut: true,
-      width: 720,
-      submitOnChange: false,
-      submitOnClose: true,
-      closeOnSubmit: true,
-    });
-  }
+  /** @override */
+  static PARTS = {
+    form: {
+      id: "form",
+      template: "modules/godice/templates/godice-resolver.hbs"
+    }
+  };
 
   /* -------------------------------------------- */
 
@@ -29,9 +26,10 @@ export default class GodiceResolver extends FormApplication {
 
   /* -------------------------------------------- */
 
-  /** @override */
-  async getData(options = {}) {
-    const context = await super.getData(options);
+  /** @inheritDoc */
+  async _prepareContext(options = {}) {
+    const context = await super._prepareContext(options);
+    context.roll = this.roll;
 
     const facesToImages = {
       4: "modules/godice/artwork/d4_white.png",
@@ -43,11 +41,17 @@ export default class GodiceResolver extends FormApplication {
       100: "modules/godice/artwork/d10_white.png",
     };
 
-    context.terms = this.terms;
-    for (const term of context.terms) {
-      term.image = facesToImages[term.faces];
+    context.terms = [];
+    for ( const [id, { results }] of Object.entries(context.groups) ) {
+      const { term } = this.fulfillable.get(id);
+      const { denomination, faces } = term;
+      results.forEach(r => {
+        r.faces = faces;
+        r.image = facesToImages[faces];
+        r.icon = `dice-${denomination}`;
+        context.terms.push(r);
+      });
     }
-    context.roll = this.roll;
 
     return context;
   }
@@ -55,39 +59,25 @@ export default class GodiceResolver extends FormApplication {
   /* -------------------------------------------- */
 
   /** @override */
-  _getSubmitData(updateData = {}) {
-    const data = super._getSubmitData(updateData);
-
-    // Find all input fields and add placeholder values to inputs with no value
-    const inputs = this.form.querySelectorAll("input");
-    for (const input of inputs) {
-      if (!input.value) {
-        data[input.name] = input.placeholder;
+  static async _fulfillRoll(event, form, formData) {
+    for ( let [id, results] of Object.entries(formData.object) ) {
+      const { term } = this.fulfillable.get(id);
+      if ( !Array.isArray(results) ) results = [results];
+      for ( let i = 0; i < results.length; i++ ) {
+        const result = results[i];
+        const roll = term.results[i] ??= { result: undefined, active: true };
+        if ( roll.result === undefined ) {
+          if ( result === null ) roll.result = term.randomFace();
+          else roll.result = result;
+        }
       }
     }
-
-    return data;
   }
 
   /* -------------------------------------------- */
 
   /** @override */
-  async _updateObject(event, formData) {
-    // Turn the entries into a map
-    const fulfilled = new Map();
-    for (const [id, result] of Object.entries(formData)) {
-      // Parse the result as a number
-      fulfilled.set(id, Number(result));
-    }
-    this.callback(fulfilled);
-  }
-
-  /* -------------------------------------------- */
-
-  /** @override */
-  activateListeners(html) {
-    super.activateListeners(html);
-
+  _onRender() {
     // Adding event handler to each input
     let diceInputs = $(".dice-term-input");
     diceInputs.each((index) => {
@@ -131,7 +121,7 @@ export default class GodiceResolver extends FormApplication {
     const connected = Array.from(
       game.modules.get("godice").api.connection.connectedDice.values()
     );
-    for (const term of this.terms) {
+    for (const term of this.fulfillable.values()) {
       // Find the first connected die not already in set that has a matching shell
       let shell = `D${term.faces}`;
       if (shell == "D100") {
@@ -164,18 +154,18 @@ export default class GodiceResolver extends FormApplication {
   /* -------------------------------------------- */
 
   handleRoll(data) {
-    const inputs = Array.from(this.element.find("input"));
+    const inputs = Array.from(this.element.querySelectorAll("input"));
     function matchingInput(event, rolling) {
       let dieSize = event.die.shell.toLowerCase(); // "D20", "D8", etc
 
       // Checking d100s
       if (
-        inputs.find((input) => input.name.toLowerCase().startsWith("d100")) &&
+        inputs.find((input) => input.dataset.denomination === "d100") &&
         (dieSize === "d10" || dieSize === "d10x")
       ) {
         // Getting all d100s
         const d100s = inputs.filter((input) =>
-          input.name.toLowerCase().startsWith("d100")
+          input.dataset.denomination === "d100"
         );
 
         // Checking if there is an unresolved, non rolling d100 term
@@ -192,7 +182,7 @@ export default class GodiceResolver extends FormApplication {
       // Else find the first input field matching this die size that does not have a value
       return inputs.find(
         (input) =>
-          input.name.toLowerCase().startsWith(dieSize) &&
+          input.dataset.denomination === dieSize &&
           !input.value &&
           input.dataset.rolling === String(rolling)
       );
@@ -201,7 +191,7 @@ export default class GodiceResolver extends FormApplication {
     if (data.event === "die_roll_started") {
       const input = matchingInput(data, false);
       if (input) {
-        if (input.name.startsWith("d100")) {
+        if (input.dataset.denomination === "d100") {
           input.dataset[data.die.shell.toLowerCase() + "rolling"] = true;
         } else {
           input.dataset.rolling = true;
@@ -236,7 +226,7 @@ export default class GodiceResolver extends FormApplication {
         const icon = span.previousElementSibling;
 
         let fullyResolved = true; // Was the roll fully resolved, used for d100s
-        if (input.name.startsWith("d100")) {
+        if (input.dataset.denomination === "d100") {
           input.dataset[data.die.shell.toLowerCase() + "rolling"] = false;
           input.dataset[data.die.shell.toLowerCase() + "resolved"] = true;
 
@@ -292,19 +282,20 @@ export default class GodiceResolver extends FormApplication {
       }
 
       // If all input fields have values, submit the form
-      if (
-        inputs.every((input) => input.value) &&
-        inputs
-          .filter((input) => input.name.toLowerCase().startsWith("d100"))
-          .every(
-            (input) =>
-              input.dataset["d10resolved"] == String(true) &&
-              input.dataset["d10xresolved"] == String(true)
-          )
-      ) {
-        this.submit();
-      }
+      this._checkDone();
     }
+  }
+
+  /* -------------------------------------------- */
+
+  /** @override */
+  _checkDone() {
+    const submitter = this.element.querySelector('button[type="submit"]');
+    if ( submitter.disabled ) return;
+    for ( const input of this.element.querySelectorAll("input") ) {
+      if ( input.value === "" ) return;
+    }
+    this.element.requestSubmit(submitter);
   }
 
   /* -------------------------------------------- */
@@ -314,5 +305,36 @@ export default class GodiceResolver extends FormApplication {
       .get("godice")
       .api.connection.unregisterRollHandler(this.handlerId);
     return super.close(options);
+  }
+
+  /* -------------------------------------------- */
+
+  /** @inheritDoc */
+  async resolveResult(term, method, { reroll=false, explode=false }={}) {
+    if ( (method !== "godice") && (method !== "manual") ) return;
+    const { denomination } = term;
+    const icon = term.faces === 100 ? "d10" : denomination;
+    const field = document.createElement("div");
+    field.classList.add("dice-term", "flexcol");
+    field.innerHTML = `
+      <img src="modules/godice/artwork/${icon}_white.png" alt="${denomination}" class="dice-term-image"
+           width="240" height="240">
+      <p class="dice-term-faces"><strong>${denomination}</strong></p>
+      <input type="number" class="dice-term-input" name="${term._id}" min="1" max="${term.faces}" step="1"
+             data-icon="dice-${icon}" data-rolling="false" data-denomination="${denomination}" data-d10rolling="false"
+             data-d10resolved="false" data-d10xrolling="false" data-d10xresolved="false">
+    `;
+    this.element.querySelector(".terms").append(field);
+    this.setPosition({ height: "auto" });
+    this._toggleSubmission(true);
+    return new Promise(resolve => {
+      const input = field.querySelector("input");
+      this.element.addEventListener("submit", () => {
+        let value = input.valueAsNumber;
+        if ( !value ) value = term.randomFace();
+        input.value = `${value}`;
+        resolve(value);
+      }, { once: true });
+    });
   }
 }
