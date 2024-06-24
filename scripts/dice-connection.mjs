@@ -54,6 +54,7 @@ export default class DiceConnection {
     const data = JSON.parse(event.data);
 
     const dieEvents = [
+      "die_registered",
       "die_connected",
       "die_shell_changed",
       "die_battery_updated",
