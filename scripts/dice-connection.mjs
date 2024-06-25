@@ -54,27 +54,29 @@ export default class DiceConnection {
 
     const data = JSON.parse(event.data);
 
-    const dieEvents = [
-      "die_registered",
-      "die_connected",
-      "die_shell_changed",
-      "die_battery_updated",
-    ];
-
-    if (data.event === "die_roll_started") {
-      Hooks.callAll("godice-roll-started", data);
-      this._notifyRollHandlers(data)
-    } else if (data.event === "die_roll_ended") {
-      Hooks.callAll("godice-roll-ended", data);
-      this._notifyRollHandlers(data)
-    } else if (data.event === "registered_dice") {
-      data.dice.forEach((d) => this._updateDie(d));
-    } else if (dieEvents.includes(data.event)) {
-      this._updateDie(data.die);
-      Hooks.callAll("godice-die-updated", data);
-    } else if (data.event === "die_disconnected") {
-      this.connectedDice.delete(data.die.id);
-      Hooks.callAll("godice-die-disconnected", data);
+    switch(data.event){
+      case "die_registered":
+      case "die_connected":
+      case "die_shell_changed":
+      case "die_battery_updated":
+        this._updateDie(data.die);
+        Hooks.callAll("godice-die-updated", data);
+        break;
+      case "die_disconnected":
+        this.connectedDice.delete(data.die.id);
+        Hooks.callAll("godice-die-disconnected", data);
+        break;
+      case "die_roll_started":
+        Hooks.callAll("godice-roll-started", data);
+        this._notifyRollHandlers(data)
+        break;
+      case "die_roll_ended":
+        Hooks.callAll("godice-roll-ended", data);
+        this._notifyRollHandlers(data)
+        break;
+      case "registered_dice":
+        data.dice.forEach((d) => this._updateDie(d));
+        break;  
     }
   }
 
