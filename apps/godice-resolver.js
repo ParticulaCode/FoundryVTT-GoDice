@@ -186,7 +186,7 @@ export default class GodiceResolver extends foundry.applications.dice.RollResolv
       return;
 
     if (input.dataset.denomination === "d100") {
-      input.dataset[_asRollingShell(data.die.shell)] = true;
+      input.dataset[_asRolling(data.die.shell)] = true;
     } else {
       input.dataset.rolling = true;
     }
@@ -205,8 +205,8 @@ export default class GodiceResolver extends foundry.applications.dice.RollResolv
     if (d100s.length > 0 && (shell === "d10" || shell === "d10x")) {
       let validTerm = d100s.find(
         (input) =>
-          input.dataset[_asRollingShell(shell)] === String(isRolling) &&
-          input.dataset[_asResolvedShell(shell)] === "false"
+          input.dataset[_asRolling(shell)] === String(isRolling) &&
+          input.dataset[_asResolved(shell)] === "false"
       );
 
       if (validTerm)
@@ -261,16 +261,18 @@ export default class GodiceResolver extends foundry.applications.dice.RollResolv
 
     let fullyResolved = true; // Was the roll fully resolved, used for d100s
     if (input.dataset.denomination === "d100") {
-      input.dataset[_asRollingShell(data.die.shell)] = false;
-      input.dataset[_asResolvedShell(data.die.shell)] = true;
+      input.dataset[_asRolling(data.die.shell)] = false;
+      input.dataset[_asResolved(data.die.shell)] = true;
 
       // First resolved roll (logical xor!)
-      if (input.dataset[_asResolvedShell("d10")] != input.dataset[_asResolvedShell("d10x")]) {
+      const d100isPending = input.dataset[_asResolved("d10")] != input.dataset[_asResolved("d10x")];
+
+      if (d100isPending) {
         input.value = data.die.value;
         fullyResolved = false;
 
         // Removing spin animation if the other die isn't still rolling (we know at least one is false)
-        if (input.dataset[_asRollingShell("d10")] == input.dataset[_asRollingShell("d10x")]) {
+        if (input.dataset[_asRolling("d10")] == input.dataset[_asRolling("d10x")]) {
           removeSpinAnimation();
         }
       } else {
@@ -324,13 +326,13 @@ export default class GodiceResolver extends foundry.applications.dice.RollResolv
 
   /* -------------------------------------------- */
 
-  static _asRollingShell(shell){
+  static _asRolling(shell){
     return shell.toLowerCase() + "rolling";
   }
   
   /* -------------------------------------------- */
 
-  static _asResolvedShell(shell){
+  static _asResolved(shell){
     return shell.toLowerCase() + "resolved";
   }
 
