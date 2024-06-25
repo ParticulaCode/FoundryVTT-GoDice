@@ -26,6 +26,12 @@ export default class Utils{
 
   /* -------------------------------------------- */
 
+  static isD100Input(input){
+    return input.dataset.denomination === "d100";
+  }
+
+  /* -------------------------------------------- */
+
   static addFulfilledClassToTerms(input){
     const span = input.previousElementSibling;
     const icon = span.previousElementSibling;

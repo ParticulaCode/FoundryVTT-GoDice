@@ -184,7 +184,7 @@ export default class GodiceResolver extends foundry.applications.dice.RollResolv
       return;
 
     const shell = data.die.shell;
-    if (input.dataset.denomination === "d100") {
+    if (Utils.isD100Input(input)) {
       input.dataset[Utils.asRolling(shell)] = true;
     } else {
       input.dataset.rolling = true;
@@ -198,7 +198,7 @@ export default class GodiceResolver extends foundry.applications.dice.RollResolv
   _getMatchingInput(event, isRolling) {
     const inputs = Array.from(this.element.querySelectorAll("input"));
 
-    const d100s = inputs.filter((input) => input.dataset.denomination === "d100");
+    const d100s = inputs.filter((input) => Utils.isD100Input(input));
 
     let shell = event.die.shell.toLowerCase();
     if (d100s.length > 0 && (shell === "d10" || shell === "d10x")) {
@@ -276,11 +276,10 @@ export default class GodiceResolver extends foundry.applications.dice.RollResolv
     input.dataset.rolling = false;
     input.value = data.die.value;
 
-    // Temporary D10 Fix
-    if (input.value == 0) {
+    // For d10: 0 => 10
+    if (input.value == 0)
       input.value = 10;
-    }
-
+    
     Utils.removeSpinAnimation(input);
     Utils.addFulfilledClassToTerms(input)
   }
@@ -292,7 +291,7 @@ export default class GodiceResolver extends foundry.applications.dice.RollResolv
     const inputs = Array.from(this.element.querySelectorAll("input"));
     if (inputs.every((input) => input.value) &&
         inputs
-          .filter((input) => input.dataset.denomination === "d100")
+          .filter((input) => Utils.isD100Input(input))
           .every(
             (input) =>
               input.dataset[Utils.asResolved("d10")] === "true" &&
