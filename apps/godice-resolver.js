@@ -234,6 +234,7 @@ export default class GodiceResolver extends foundry.applications.dice.RollResolv
       this._handleNonD100RollEnd(input, data);
     }
 
+    // TODO: This is inconsistent in case of multiple dice rolled with different shells. Dice will end up rolling in random order.
     Utils.deleteLastRollingChatMessage();
   }
 
@@ -288,12 +289,19 @@ export default class GodiceResolver extends foundry.applications.dice.RollResolv
 
   /** @override */
   _checkDone() {
-    const submitter = this.element.querySelector('button[type="submit"]');
-    if ( submitter.disabled ) return;
-    for ( const input of this.element.querySelectorAll("input") ) {
-      if ( input.value === "" ) return;
-    }
-    this.element.requestSubmit(submitter);
+    const inputs = Array.from(this.element.querySelectorAll("input"));
+    if (inputs.every((input) => input.value) &&
+        inputs
+          .filter((input) => input.dataset.denomination === "d100")
+          .every(
+            (input) =>
+              input.dataset[Utils.asResolved("d10")] === "true" &&
+              input.dataset[Utils.asResolved("d10x")] === "true"
+          )
+      ) {
+        const submitter = this.element.querySelector('button[type="submit"]');
+        this.element.requestSubmit(submitter);
+      }
   }
 
   /* -------------------------------------------- */
