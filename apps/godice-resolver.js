@@ -1,4 +1,5 @@
 import Utils from "./utils.js";
+import Chat from "./chat.js";
 
 export default class GodiceResolver extends foundry.applications.dice.RollResolver {
   handlerId;
@@ -190,7 +191,7 @@ export default class GodiceResolver extends foundry.applications.dice.RollResolv
       input.dataset.rolling = true;
     }
 
-    Utils.createRollingChatMessage(input, shell);
+    Chat.createRollingChatMessage(input, shell);
   }
 
   /* -------------------------------------------- */
@@ -235,7 +236,7 @@ export default class GodiceResolver extends foundry.applications.dice.RollResolv
     }
 
     // TODO: This is inconsistent in case of multiple dice rolled with different shells. Dice will end up rolling in random order.
-    Utils.deleteLastRollingChatMessage();
+    Chat.deleteLastRollingChatMessage();
   }
 
   /* -------------------------------------------- */
