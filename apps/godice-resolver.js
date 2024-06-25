@@ -255,6 +255,10 @@ export default class GodiceResolver extends foundry.applications.dice.RollResolv
     const span = input.previousElementSibling;
     const icon = span.previousElementSibling;
 
+    function removeSpinAnimation() {
+      icon.classList.remove("fa-spin");
+    }
+
     let fullyResolved = true; // Was the roll fully resolved, used for d100s
     if (input.dataset.denomination === "d100") {
       input.dataset[_asRollingShell(data.die.shell)] = false;
@@ -267,7 +271,7 @@ export default class GodiceResolver extends foundry.applications.dice.RollResolv
 
         // Removing spin animation if the other die isn't still rolling (we know at least one is false)
         if (input.dataset[_asRollingShell("d10")] == input.dataset[_asRollingShell("d10x")]) {
-          icon.classList.remove("fa-spin");
+          removeSpinAnimation();
         }
       } else {
         // Fully resolved
@@ -281,7 +285,7 @@ export default class GodiceResolver extends foundry.applications.dice.RollResolv
           input.value = 100;
         }
 
-        icon.classList.remove("fa-spin");
+        removeSpinAnimation();
       }
     } else {
       input.dataset.rolling = false;
@@ -291,8 +295,8 @@ export default class GodiceResolver extends foundry.applications.dice.RollResolv
       if (input.value == 0) {
         input.value = 10;
       }
-      // Removing spin animation
-      icon.classList.remove("fa-spin");
+      
+      removeSpinAnimation();
     }
 
     if (fullyResolved) {
