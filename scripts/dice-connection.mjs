@@ -50,7 +50,8 @@ export default class DiceConnection {
   /* -------------------------------------------- */
 
   _onMessage(event) {
-    console.debug("GoDice websocket message received");
+    console.debug(`GoDice websocket message received: ${event.data}`);
+
     const data = JSON.parse(event.data);
 
     const dieEvents = [
@@ -60,30 +61,32 @@ export default class DiceConnection {
       "die_battery_updated",
     ];
 
-    function dieConnection(die) {
-      const state = this.connectedDice.get(die.id) ?? {};
-      this.connectedDice.set(die.id, foundry.utils.mergeObject(state, die));
-      Hooks.callAll("godice-die-connected", data);
-    }
-
     if (data.event === "die_roll_started") {
       Hooks.callAll("godice-roll-started", data);
-      for (const handler of this._rollHandlers.values()) {
-        handler(data);
-      }
+      this._notifyRollHandlers(data)
     } else if (data.event === "die_roll_ended") {
       Hooks.callAll("godice-roll-ended", data);
-      for (const handler of this._rollHandlers.values()) {
-        handler(data);
-      }
+      this._notifyRollHandlers(data)
     } else if (data.event === "registered_dice") {
-      data.dice.forEach((d) => dieConnection.call(this, d));
+      data.dice.forEach((d) => this._updateDie(d));
     } else if (dieEvents.includes(data.event)) {
-      dieConnection.call(this, data.die);
+      this._updateDie(data.die);
+      Hooks.callAll("godice-die-updated", data);
     } else if (data.event === "die_disconnected") {
       this.connectedDice.delete(data.die.id);
       Hooks.callAll("godice-die-disconnected", data);
     }
+  }
+
+  _notifyRollHandlers(data) {
+    for (const handler of this._rollHandlers.values()) {
+      handler(data);
+    }
+  }
+
+  _updateDie(die) {
+      const state = this.connectedDice.get(die.id) ?? {};
+      this.connectedDice.set(die.id, foundry.utils.mergeObject(state, die));
   }
 
   /* -------------------------------------------- */
@@ -118,6 +121,12 @@ export default class DiceConnection {
 
   /* -------------------------------------------- */
 
+  getConnectedDice() {
+    return this.connectedDice.values();
+  }
+
+  /* -------------------------------------------- */
+
   blink(id) {
     this._blink(id, [1, 0.18, 0.1]);
   }
@@ -144,6 +153,9 @@ export default class DiceConnection {
         is_mixed: true,
       },
     });
+
+    console.debug(`GoDice websocket message sent: ${payload}`);
+
     this._webSocket.send(payload);
   }
 }

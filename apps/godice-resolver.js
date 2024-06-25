@@ -119,7 +119,7 @@ export default class GodiceResolver extends foundry.applications.dice.RollResolv
 
     const toBlink = new Set();
     const connected = Array.from(
-      game.modules.get("godice").api.connection.connectedDice.values()
+      game.modules.get("godice").api.connection.getConnectedDice()
     );
     for (const entry of this.fulfillable.values()) {
       // Find the first connected die not already in set that has a matching shell
