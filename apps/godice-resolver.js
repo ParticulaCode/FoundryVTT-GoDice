@@ -22,7 +22,7 @@ export default class GodiceResolver extends foundry.applications.dice.RollResolv
 
   /* -------------------------------------------- */
 
-  static createdChatMessages = [];
+  static _rollingChatMessages = [];
 
   /* -------------------------------------------- */
 
@@ -107,9 +107,9 @@ export default class GodiceResolver extends foundry.applications.dice.RollResolv
     const api = game.modules.get("godice").api;
 
     this.handlerId = api.connection.registerRollHandler(
-      this.handleRoll.bind(this)
+      this._handleRoll.bind(this)
     );
-    
+
     if (!api.connection.isConnected) {
       ui.notifications.error("GoDice is not connected, make sure you have the App open.");
       return;
@@ -166,137 +166,168 @@ export default class GodiceResolver extends foundry.applications.dice.RollResolv
 
   /* -------------------------------------------- */
 
-  handleRoll(data) {
-    const inputs = Array.from(this.element.querySelectorAll("input"));
-    function matchingInput(event, rolling) {
-      let dieSize = event.die.shell.toLowerCase(); // "D20", "D8", etc
+  _handleRoll(data) {
+    switch(data.event){
+      case "die_roll_started":
+        this._handleRollStart(data);
+        break;
+      case "die_roll_ended":
+        this._handleRollEnd(data);
+        this._checkDone();
+        break;
+    }
+  }
 
-      // Checking d100s
-      if (
-        inputs.find((input) => input.dataset.denomination === "d100") &&
-        (dieSize === "d10" || dieSize === "d10x")
-      ) {
-        // Getting all d100s
-        const d100s = inputs.filter((input) =>
-          input.dataset.denomination === "d100"
-        );
+/* -------------------------------------------- */
 
-        // Checking if there is an unresolved, non rolling d100 term
-        let validTerm = d100s.find(
-          (input) =>
-            input.dataset[dieSize + "rolling"] === String(rolling) &&
-            input.dataset[dieSize + "resolved"] === "false"
-        );
-        if (validTerm) {
-          return validTerm;
-        }
-      }
+  _handleRollStart(data){
+    const input = this._getMatchingInput(data, false);
+    if (!input) 
+      return;
 
-      // Else find the first input field matching this die size that does not have a value
-      return inputs.find(
-        (input) =>
-          input.dataset.denomination === dieSize &&
-          !input.value &&
-          input.dataset.rolling === String(rolling)
-      );
+    if (input.dataset.denomination === "d100") {
+      input.dataset[_asRollingShell(data.die.shell)] = true;
+    } else {
+      input.dataset.rolling = true;
     }
 
-    if (data.event === "die_roll_started") {
-      const input = matchingInput(data, false);
-      if (input) {
-        if (input.dataset.denomination === "d100") {
-          input.dataset[data.die.shell.toLowerCase() + "rolling"] = true;
-        } else {
-          input.dataset.rolling = true;
-        }
+    this._createRollingChatMessage(input, data.die.shell);
+  }
 
-        // Find the span sibling before the input field and add a " - Rolling..." message
-        const span = input.previousElementSibling;
-        /*span.innerText += " - Rolling...";*/
+  /* -------------------------------------------- */
 
-        // Find the font awesome icon and apply the animation
-        const icon = span.previousElementSibling;
-        if (!icon.classList.contains("fa-spin")) {
-          icon.classList.add("fa-spin");
-        }
+  _getMatchingInput(event, isRolling) {
+    const inputs = Array.from(this.element.querySelectorAll("input"));
 
-        // Create a chat message to indicate that the die is rolling
-        const message = {
-          speaker: ChatMessage.getSpeaker({ actor: this.actor }),
-          content: `<i class="fas ${input.dataset.icon} fa-spin"></i> Rolling ${data.die.shell}...`,
-          type: CONST.CHAT_MESSAGE_TYPES.ROLL,
-        };
-        ChatMessage.create(message).then((createdChatMessage) => {
-          GodiceResolver.createdChatMessages.push(createdChatMessage);
-        });
-      }
-    } else if (data.event === "die_roll_ended") {
-      const input = matchingInput(data, true);
-      if (input) {
-        // Find the span sibling before the input field
-        const span = input.previousElementSibling;
-        // Find the font awesome icon
-        const icon = span.previousElementSibling;
+    const d100s = inputs.filter((input) => input.dataset.denomination === "d100");
 
-        let fullyResolved = true; // Was the roll fully resolved, used for d100s
-        if (input.dataset.denomination === "d100") {
-          input.dataset[data.die.shell.toLowerCase() + "rolling"] = false;
-          input.dataset[data.die.shell.toLowerCase() + "resolved"] = true;
+    let shell = event.die.shell.toLowerCase();
+    if (d100s.length > 0 && (shell === "d10" || shell === "d10x")) {
+      let validTerm = d100s.find(
+        (input) =>
+          input.dataset[_asRollingShell(shell)] === String(isRolling) &&
+          input.dataset[_asResolvedShell(shell)] === "false"
+      );
 
-          // First resolved roll (logical xor!)
-          if (input.dataset["d10resolved"] != input.dataset["d10xresolved"]) {
-            input.value = data.die.value;
-            fullyResolved = false;
+      if (validTerm)
+        return validTerm;
+    }
 
-            // Removing spin animation if the other die isn't still rolling (we know at least one is false)
-            if (input.dataset["d10rolling"] == input.dataset["d10xrolling"]) {
-              icon.classList.remove("fa-spin");
-            }
-          } else {
-            // Fully resolved
+    // Else find the first input field matching this die size that does not have a value
+    return inputs.find(
+      (input) =>
+        input.dataset.denomination === shell &&
+        !input.value &&
+        input.dataset.rolling === String(isRolling)
+    );
+  }
 
-            // Removing spin animation
-            input.value = String(
-              parseInt(input.value) + parseInt(data.die.value)
-            );
-            if (input.value == 0) {
-              // If both dice rolled 0 the result should be 100
-              input.value = 100;
-            }
-            icon.classList.remove("fa-spin");
-          }
-        } else {
-          input.dataset.rolling = false;
-          input.value = data.die.value;
+  /* -------------------------------------------- */
 
-          // Temporary D10 Fix
-          if (input.value == 0) {
-            input.value = 10;
-          }
-          // Removing spin animation
+  _createRollingChatMessage(input, shell){
+    const span = input.previousElementSibling;
+
+    // Spin animation for icon
+    const icon = span.previousElementSibling;
+    if (!icon.classList.contains("fa-spin")) {
+      icon.classList.add("fa-spin");
+    }
+
+    const message = {
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `<i class="fas ${input.dataset.icon} fa-spin"></i> Rolling ${shell}...`,
+      type: CONST.CHAT_MESSAGE_TYPES.ROLL,
+    };
+
+    ChatMessage.create(message).then((createdChatMessage) => {
+      GodiceResolver._rollingChatMessages.push(createdChatMessage);
+    });
+  }
+
+  /* -------------------------------------------- */
+
+  _handleRollEnd(data){
+    const input = this._getMatchingInput(data, true);
+    if (!input)
+      return;
+
+    // Find the span sibling before the input field
+    const span = input.previousElementSibling;
+    const icon = span.previousElementSibling;
+
+    let fullyResolved = true; // Was the roll fully resolved, used for d100s
+    if (input.dataset.denomination === "d100") {
+      input.dataset[_asRollingShell(data.die.shell)] = false;
+      input.dataset[_asResolvedShell(data.die.shell)] = true;
+
+      // First resolved roll (logical xor!)
+      if (input.dataset[_asResolvedShell("d10")] != input.dataset[_asResolvedShell("d10x")]) {
+        input.value = data.die.value;
+        fullyResolved = false;
+
+        // Removing spin animation if the other die isn't still rolling (we know at least one is false)
+        if (input.dataset[_asRollingShell("d10")] == input.dataset[_asRollingShell("d10x")]) {
           icon.classList.remove("fa-spin");
         }
+      } else {
+        // Fully resolved
 
-        if (fullyResolved) {
-          icon.classList.add("fulfilled");
-
-          // Add a fulfilled class to the parent .dice-term
-          const term = span.closest(".dice-term");
-          term.classList.add("fulfilled");
-          const faces = span.closest(".dice-term");
-          faces.classList.add("fulfilled");
+        // Removing spin animation
+        input.value = String(
+          parseInt(input.value) + parseInt(data.die.value)
+        );
+        if (input.value == 0) {
+          // If both dice rolled 0 the result should be 100
+          input.value = 100;
         }
 
-        // Delete the chat message that indicated that the die was rolling
-        const createdChatMessage = GodiceResolver.createdChatMessages.pop();
-        if (createdChatMessage) {
-          createdChatMessage.delete();
-        }
+        icon.classList.remove("fa-spin");
       }
+    } else {
+      input.dataset.rolling = false;
+      input.value = data.die.value;
 
-      // If all input fields have values, submit the form
-      this._checkDone();
+      // Temporary D10 Fix
+      if (input.value == 0) {
+        input.value = 10;
+      }
+      // Removing spin animation
+      icon.classList.remove("fa-spin");
     }
+
+    if (fullyResolved) {
+      icon.classList.add("fulfilled");
+
+      // Add a fulfilled class to the parent .dice-term
+      const term = span.closest(".dice-term");
+      term.classList.add("fulfilled");
+      const faces = span.closest(".dice-term");
+      faces.classList.add("fulfilled");
+    }
+
+    this._deleteLastRollingChatMessage();
+  }
+
+  /* -------------------------------------------- */
+
+  _deleteLastRollingChatMessage(){
+    const message = GodiceResolver._rollingChatMessages.pop();
+    if (!message)
+      return;
+    
+    message.delete();
+  }
+
+  /* -------------------------------------------- */
+
+  static _asRollingShell(shell){
+    return shell.toLowerCase() + "rolling";
+  }
+  
+  /* -------------------------------------------- */
+
+  static _asResolvedShell(shell){
+    return shell.toLowerCase() + "resolved";
   }
 
   /* -------------------------------------------- */
