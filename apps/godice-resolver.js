@@ -104,51 +104,64 @@ export default class GodiceResolver extends foundry.applications.dice.RollResolv
       });
     });
 
-    // Setting input behavior
     const api = game.modules.get("godice").api;
+
     this.handlerId = api.connection.registerRollHandler(
       this.handleRoll.bind(this)
     );
-
+    
     if (!api.connection.isConnected) {
-      ui.notifications.error(
-        "GoDice is not connected, make sure you have the App open."
-      );
+      ui.notifications.error("GoDice is not connected, make sure you have the App open.");
       return;
     }
 
-    const toBlink = new Set();
+    this._blinkForFulfillableRolls()
+  }
+
+  /* -------------------------------------------- */
+
+  _blinkForFulfillableRolls(){
+    const diceIds = this._getDiceIdsForBlink(this.fulfillable.values());
+    
+    for (const id of diceIds) {
+      game.modules.get("godice").api.connection.blink(id);
+    }
+  }
+  
+  /* -------------------------------------------- */
+
+  _getDiceIdsForBlink(entries){
+    const selectedDice = new Set();
     const connected = Array.from(
       game.modules.get("godice").api.connection.getConnectedDice()
     );
-    for (const entry of this.fulfillable.values()) {
-      // Find the first connected die not already in set that has a matching shell
+
+    function findUnselectedDieByShell(shell){
+      return connected.find(
+          (die) => !selectedDice.has(die.id) && die.shell === shell
+        );
+    }
+
+    function selectDieByShell(shell){
+      const die = findUnselectedDieByShell(shell);
+      if (!die)
+        return;
+    
+      selectedDice.add(die.id);
+    }
+
+    for (const entry of entries) {
       let shell = `D${entry.term._faces}`;
       if (shell == "D100") {
-        const d10 = connected.find(
-          (die) => !toBlink.has(die.id) && die.shell === "D10"
-        );
-        const d10x = connected.find(
-          (die) => !toBlink.has(die.id) && die.shell === "D10X"
-        );
-        if (d10) {
-          toBlink.add(d10.id);
-        }
-        if (d10x) {
-          toBlink.add(d10x.id);
-        }
-      } else {
-        const die = connected.find(
-          (die) => !toBlink.has(die.id) && die.shell === shell
-        );
-        if (die) {
-          toBlink.add(die.id);
-        }
+        selectDieByShell("D10");
+        selectDieByShell("D10X");
+        continue;
       }
+      
+      selectDieByShell(shell);
     }
-    for (const id of toBlink) {
-      game.modules.get("godice").api.connection.blink(id);
-    }
+
+    return selectedDice;
   }
 
   /* -------------------------------------------- */

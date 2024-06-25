@@ -80,12 +80,16 @@ export default class DiceConnection {
     }
   }
 
+  /* -------------------------------------------- */
+  
   _notifyRollHandlers(data) {
     for (const handler of this._rollHandlers.values()) {
       handler(data);
     }
   }
 
+  /* -------------------------------------------- */
+  
   _updateDie(die) {
       const state = this.connectedDice.get(die.id) ?? {};
       this.connectedDice.set(die.id, foundry.utils.mergeObject(state, die));
