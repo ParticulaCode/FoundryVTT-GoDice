@@ -150,14 +150,16 @@ export default class GodiceResolver extends foundry.applications.dice.RollResolv
     }
 
     for (const entry of entries) {
-      let shell = `D${entry.term._faces}`;
-      if (shell == "D100") {
-        selectDieByShell("D10");
-        selectDieByShell("D10X");
-        continue;
+      for (let i = 0; i < entry.term._number; i++) { 
+        let shell = `D${entry.term._faces}`;
+        if (shell == "D100") {
+          selectDieByShell("D10");
+          selectDieByShell("D10X");
+          continue;
+        }
+        
+        selectDieByShell(shell);
       }
-      
-      selectDieByShell(shell);
     }
 
     return selectedDice;
