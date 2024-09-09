@@ -13,18 +13,18 @@
 
     <div class="terms-container">
         <div class="terms">
-            {{#each terms}}
+            {{#each terms as |term i|}}
                 <div class="dice-term flexcol">
-                    {{#if this.faces}}
-                        {{#if this.image}}
-                            <img src="{{this.image}}" alt="d{{this.faces}}" class="dice-term-image" width="240px" height="240px"/>
+                    {{#if term.faces}}
+                        {{#if term.image}}
+                            <img src="{{term.image}}" alt="d{{term.faces}}" class="dice-term-image" width="240px" height="240px"/>
                         {{else}}
-                            <i class="fa-solid {{this.icon}}"></i>
+                            <i class="fa-solid {{term.icon}}"></i>
                         {{/if}}
-                        <p class="dice-term-faces"><b>d{{this.faces}}</b></p>
+                        <p class="dice-term-faces"><b>d{{term.faces}}</b></p>
                     {{/if}}
-                    <input type="number" class="dice-term-input" name="{{this.id}}" min="1" max="{{this.faces}}"
-                        value="{{ value }}" data-icon="{{this.icon}}" data-rolling="false" data-denomination="{{ denomination }}"
+                    <input {{#unless i}}autofocus{{/unless}} type="number" class="dice-term-input" name="{{term.id}}" min="1" max="{{term.faces}}"
+                        value="{{ value }}" data-icon="{{term.icon}}" data-rolling="false" data-denomination="{{ denomination }}"
                         data-d10rolling="false" data-d10resolved="false" data-d10xrolling="false" data-d10xresolved="false" />
                 </div>
             {{/each}}
