@@ -224,7 +224,7 @@ export default class GodiceResolver extends foundry.applications.dice.RollResolv
     // Else find the first input field matching this die size that does not have a value
     return inputs.find(
       (input) =>
-        input.dataset.denomination === shell &&
+        Utils.matchesShell(input, shell) &&
         !input.value &&
         input.dataset.rolling === String(isRolling)
     );
@@ -237,7 +237,7 @@ export default class GodiceResolver extends foundry.applications.dice.RollResolv
     if (!input)
       return;
 
-    if (input.dataset.denomination === "d100") {
+    if (Utils.isD100Input(input)) {
       this._handleD100RollEnd(input, data);
     } else {
       this._handleNonD100RollEnd(input, data);
@@ -326,17 +326,18 @@ export default class GodiceResolver extends foundry.applications.dice.RollResolv
   /** @inheritDoc */
   async resolveResult(term, method, { reroll=false, explode=false }={}) {
     if ( (method !== "godice") && (method !== "manual") ) return;
-    const { denomination } = term;
-    const icon = term.faces === 100 ? "d10" : denomination;
+    const { denomination, faces } = term;
+    // Use the face count rather than the denomination, which may be system-defined (e.g. "p" for "dp")
+    const icon = faces === 100 ? "d10" : `d${faces}`;
     const field = document.createElement("div");
     field.classList.add("dice-term", "flexcol");
     field.innerHTML = `
-      <img src="modules/godice/artwork/${icon}_white.png" alt="${denomination}" class="dice-term-image"
+      <img src="modules/godice/artwork/${icon}_white.png" alt="d${faces}" class="dice-term-image"
            width="240" height="240">
-      <p class="dice-term-faces"><strong>${denomination}</strong></p>
-      <input type="number" class="dice-term-input" name="${term._id}" min="1" max="${term.faces}" step="1"
-             data-icon="dice-${icon}" data-rolling="false" data-denomination="${denomination}" data-d10rolling="false"
-             data-d10resolved="false" data-d10xrolling="false" data-d10xresolved="false">
+      <p class="dice-term-faces"><strong>d${faces}</strong></p>
+      <input type="number" class="dice-term-input" name="${term._id}" min="1" max="${faces}" step="1"
+             data-icon="dice-${icon}" data-rolling="false" data-denomination="${denomination}" data-faces="${faces}"
+             data-d10rolling="false" data-d10resolved="false" data-d10xrolling="false" data-d10xresolved="false">
     `;
     this.element.querySelector(".terms").append(field);
     this.setPosition({ height: "auto" });

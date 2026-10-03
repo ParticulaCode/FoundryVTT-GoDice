@@ -23,7 +23,15 @@ export default class Utils{
   /* -------------------------------------------- */
 
   static isD100Input(input){
-    return input.dataset.denomination === "d100";
+    return input.dataset.faces === "100";
+  }
+
+  /* -------------------------------------------- */
+
+  // Match by number of faces rather than denomination, so system-defined dice
+  // (e.g. Wrath & Glory's pool "dp" and wrath "dw" d6s) are filled by the matching GoDice shell
+  static matchesShell(input, shell){
+    return input.dataset.faces === shell.toLowerCase().replace(/^d/, "");
   }
 
   /* -------------------------------------------- */
